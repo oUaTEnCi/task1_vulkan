@@ -16,10 +16,6 @@
 #define N_ITERS (100)
 #define N_SKIP (5)
 
-/*#define N_WARMUP (3)
-#define N_ITERS (15)
-#define N_SKIP (3)*/
-
 #define AlignDown(offset, alignment) \
   ((offset)-(offset)%(alignment))
 
@@ -102,7 +98,7 @@ vector<Color> ProcessImageCpu(const vector<Color> &img, const Config config,
   auto endTime=chrono::high_resolution_clock::now();
 
   if (elapsedTime)
-    *elapsedTime=endTime-startTime;
+    *elapsedTime=chrono::duration_cast<chrono::milliseconds>(endTime-startTime);
   
   return result;
 }
@@ -421,6 +417,8 @@ void InitializeProcessingContext(const uint32_t imgSize) {
   {
   VkShaderModule filtersShader=
       CreateShaderModuleFromIR((uint32_t*)filtersShaderIR, filtersShaderIRSize);
+  /*VkShaderModule filtersShader=
+      CreateShaderModuleFromFile("shaders/filters.spv");*/
   
   const uint32_t imgSizeSpecConstVal=imgSize;
   
@@ -602,7 +600,8 @@ vector<Color> ProcessImageGpu(const vector<Color> &img, const Config config,
     *computeOnlyElapsedTime=(timestamps[1]-timestamps[0])*timestampPeriod;
   }
   if (allElapsedTime)
-    *allElapsedTime=endTransfer-startTransfer;
+    *allElapsedTime=
+        chrono::duration_cast<chrono::milliseconds>(endTransfer-startTransfer);
   return result;
 }
 
