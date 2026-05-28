@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <algorithm>
+#include <stdexcept>
 #include <chrono>
 #include <assert.h>
 #include <stdio.h>
