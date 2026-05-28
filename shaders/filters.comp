@@ -1,0 +1,39 @@
+#version 450
+
+#define WORKGROUP_SIZE (256)
+
+layout(constant_id=0) const uint imgSize=0;
+
+layout(set=0, binding=0) buffer resultImageBuffer {
+  dvec4 img[];
+};
+
+layout(set=0, binding=1) readonly uniform configUniforms {
+  double scale, brightnessShift, contrastFactor, gain;
+  float blackLevel;
+};
+
+layout(local_size_x=WORKGROUP_SIZE, local_size_y=1, local_size_z=1) in;
+
+void main() {
+  if (gl_GlobalInvocationID.x>=imgSize) return;
+
+  // Saturation
+  dvec3 afterSaturation;
+  {
+  const double desaturated=(img[gl_GlobalInvocationID.x].r*0.2126+
+                            img[gl_GlobalInvocationID.x].g*0.7152+
+                            img[gl_GlobalInvocationID.x].b*0.0722)*(1.0-scale);
+  
+  afterSaturation=desaturated+img[gl_GlobalInvocationID.x].rgb*scale;
+  }
+
+  // BrightnessContrast
+  dvec3 afterBrightness=(afterSaturation-0.5)*contrastFactor+brightnessShift+
+                        0.5;
+
+  // Exposure
+  {
+  img[gl_GlobalInvocationID.x].rgb=(afterBrightness-blackLevel)*gain;
+  }
+}
